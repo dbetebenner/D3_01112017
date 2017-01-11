@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.background {
+  fill: none;
+  pointer-events: all;
+}
+
+#districts {
+  fill: #ccc;
+}
+
+#districts .active {
+  fill: orange;
+}
+
+#district-borders {
+  fill: none;
+  stroke: white;
+  stroke-width: 1px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.hidden {
+  display: none;
+}
+
+div.tooltip {
+  background-color: #ffffff;
+  padding: 7px;
+  text-shadow: #f5f5f5 0 1px 0;
+  font: 13px Helvetica Neue;
+  border: 2.5px solid;
+  border-color: black;
+	border-radius: 3px;
+  opacity: 0.9;
+  position: absolute;
+  box-shadow: rgba(0, 0, 0, 0.3) 0 2px 10px;
+ }
+</style>
+<body>
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>
+<script>
+  
+var width = 960,
+    height = 600,
+    centered;
+
+var projection = d3.geoMercator()
+			.center([ -71.5, 41.7 ])
+			.scale(24000);
+ 
+var path = d3.geoPath()
+    .projection(projection);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg.append("rect")
+    .attr("class", "background")
+    .attr("width", width)
+    .attr("height", height)
+    .on("click", clicked);
+
+var tooltip = d3.select('body').append('div')
+      .attr('class', 'hidden tooltip');
+  
+var g = svg.append("g");
+
+d3.json("RI_Districts.json", function(error, state_districts) {
+  if (error) throw error;
+
+  g.append("g")
+      .attr("id", "districts")
+    .selectAll("path")
+      .data(topojson.feature(state_districts, state_districts.objects.districts).features)
+    .enter().append("path")
+      .attr("d", path)
+      .on("click", clicked)
+      .on('mousemove', function(d) {
+           var mouse = d3.mouse(svg.node()).map(function(d) {
+                return parseInt(d);
+         });
+         tooltip.classed('hidden', false)
+                .attr('style', 'left:' + (mouse[0] + 10) +'px; top:' + (mouse[1] - 20) + 'px')
+                .html(d.properties.District);
+         })
+         .on('mouseout', function() {
+                tooltip.classed('hidden', true);
+         });;
+  g.append("path")
+      .datum(topojson.mesh(state_districts, state_districts.objects.districts, function(a, b) { return a !== b; }))
+      .attr("id", "district-borders")
+      .attr("d", path);
+});
+
+function clicked(d) {
+  var x, y, k;
+
+  if (d && centered !== d) {
+    var centroid = path.centroid(d);
+    x = centroid[0];
+    y = centroid[1];
+    k = 4;
+    centered = d;
+  } else {
+    x = width / 2;
+    y = height / 2;
+    k = 1;
+    centered = null;
+  }
+
+  g.selectAll("path")
+      .classed("active", centered && function(d) { return d === centered; });
+
+  g.transition()
+      .duration(750)
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
+      .style("stroke-width", 1.5 / k + "px");
+}
+
+</script>
