@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<head>
+<title>D3 Block-a-Day: Day 11, January 11, 2017</title>
 <style>
 
 .background {
@@ -41,11 +43,12 @@ div.tooltip {
   box-shadow: rgba(0, 0, 0, 0.3) 0 2px 10px;
  }
 </style>
+</head>
 <body>
 <script src="//d3js.org/d3.v4.min.js"></script>
 <script src="//d3js.org/topojson.v1.min.js"></script>
 <script>
-  
+
 var width = 960,
     height = 600,
     centered;
@@ -53,7 +56,7 @@ var width = 960,
 var projection = d3.geoMercator()
 			.center([ -71.5, 41.7 ])
 			.scale(24000);
- 
+
 var path = d3.geoPath()
     .projection(projection);
 
@@ -69,7 +72,7 @@ svg.append("rect")
 
 var tooltip = d3.select('body').append('div')
       .attr('class', 'hidden tooltip');
-  
+
 var g = svg.append("g");
 
 d3.json("RI_Districts.json", function(error, state_districts) {
